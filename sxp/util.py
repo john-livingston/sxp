@@ -33,6 +33,16 @@ def mkdirs(*args):
         mkdir(d)
 
 
+def load_data(data_dir, transit_aor):
+
+    """
+    for reading the current output format of sxp photometry.
+    """
+
+    d = pickle.load(open('{}/{}_phot.pkl'.format(data_dir, transit_aor), 'rb'))
+    return [d[i] for i in 'cube, time, flux, radii, unc, cen'.split(', ')]
+
+
 def get_pix(cube, cen=None, geom='3x3', normalize=False):
 
     """
@@ -67,5 +77,5 @@ def get_pix(cube, cen=None, geom='3x3', normalize=False):
 
     if normalize:
         for i in pixels: i /= i.sum()
-        
+
     return pixels

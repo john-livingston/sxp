@@ -16,6 +16,7 @@ class SxpDataset(dict):
         self._config = setup['config']
         self['star'] = self._config['star']
         self['planet'] = self._config['planet']
+
         if aor:
             self['aor'] = aor
         else:
@@ -25,20 +26,17 @@ class SxpDataset(dict):
         else:
             self['geom'] = self._config['geom']
 
-        cube, t, f, r, s, c = load_data(self._config['data_dir'], self['aor'])
+        cube, t, f, r, s, c = util.load_data(self._config['data_dir'], self['aor'])
 
         self['pix'] = util.get_pix(cube, geom=self['geom'], normalize=True)
         self['t'] = t
-        if radius == 'setup':
+
+        try:
             i = r.index(self._config['radius'])
-        elif radius == 'auto':
-            i = select_radius(f)
-        elif type(radius) == float:
-            try:
-                i = r.index(radius)
-            except:
-                sys.exit('invalid radius selection')
+        except:
+            sys.exit('invalid radius selection')
         print("using radius: {}".format(r[i]))
+
         self['radius'] = r[i]
         self['f'] = f[i]
         self['fcor'] = f[i].copy() # initially same as f, but can be updated
