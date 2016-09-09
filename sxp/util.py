@@ -1,6 +1,9 @@
 import os
 import sys
 import shutil
+import pickle
+import numpy as np
+from photutils.morphology import centroid_com
 
 
 def find_files(directory, pattern):
