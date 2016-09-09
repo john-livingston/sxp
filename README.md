@@ -1,0 +1,2 @@
+# sxp
+spitzer exoplanet photometry
