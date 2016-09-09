@@ -1,0 +1,161 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import yaml
+import argparse
+import numpy as np
+import pickle
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as pl
+from photutils.morphology import centroid_com
+# from photutils.morphology import centroid_1dg
+# from photutils.morphology import centroid_2dg
+
+import sxp
+
+
+cwd = os.path.abspath('.')
+parser = argparse.ArgumentParser(description="Extract photometric time series"
+    " from Spitzer data")
+parser.add_argument('input', help='path to input data dir', type=str)
+parser.add_argument('-o', '--output', help='output dir',
+    type=str, default=os.path.join(cwd, 'sxphot_out'))
+parser.add_argument('-m', '--movie', help='make movie of extracted images',
+    dest='movie', action='store_true')
+parser.add_argument('-a', '--aor', help='aor name', type=str, default=None)
+parser.set_defaults(movie=False)
+
+
+args = parser.parse_args()
+
+data_dir = os.path.abspath(args.input)
+aor = os.path.basename(data_dir)
+if args.aor:
+    aor = args.aor
+
+pickle_dir = os.path.join(args.output, 'pickles')
+plot_dir = os.path.join(args.output, 'plots')
+log_dir = os.path.join(args.output, 'logs')
+sxp.util.mkdirs(args.output, pickle_dir, plot_dir, log_dir)
+
+log = {}
+
+
+# read data
+
+time, cube = sxp.phot.read_data(data_dir)
+# pix_outliers(cube)
+
+
+# make movie
+
+if args.movie:
+    movie_dir = os.path.join(args.output, 'movies')
+    sxp.util.mkdirs(movie_dir)
+    outpath = os.path.join(movie_dir, '{}_frames.mp4'.format(aor))
+    sxp.vis.movie(cube, outpath, fps=60)
+
+
+# plot median stacked image
+
+outpath = os.path.join(plot_dir, '{}_cube_stacked.png'.format(aor))
+cen = sxp.vis.plot_stacked(cube, outpath)
+print "median centroid: {},{}".format(*cen)
+dist = np.sqrt((15-cen[0])**2 + (15-cen[1])**2)
+log['median_centroid'] = cen
+if dist > 0.5:
+    print "WARNING: target may not be on sweet spot"
+    log['target_maybe_not_on_sweet_spot'] = True
+
+
+# compute centroids
+
+centroid = sxp.phot.get_centroids(cube, centroid=centroid_com)
+
+
+# plot centroids
+
+outpath = os.path.join(plot_dir, '{}_centroid.png'.format(aor))
+x, y = zip(*centroid)
+sxp.vis.centroids(time, x, y, outpath)
+
+
+# moving median filter to get rid of frames corresponding to
+# large centroid deviations
+
+time, cube, centroid = sxp.phot.centroid_sigclip(time, cube, centroid)
+
+
+# plot cleaned centroids
+
+outpath = os.path.join(plot_dir, '{}_centroid_clean.png'.format(aor))
+x, y = zip(*centroid)
+sxp.vis.centroids(time, x, y, outpath)
+
+
+# subtract background
+
+cube, unc = sxp.phot.subtract_bg(cube)
+
+
+# compute photometry over a range of radii
+
+# radii = np.round(np.arange(1.5, 3.6, 0.1), 2).tolist()
+# radii += [4.0, 4.5, 5.0]
+radii = np.round(np.arange(2.0, 3.1, 0.1), 2).tolist()
+radii += [3.5, 4.0, 4.5, 5.0]
+fluxes_r = sxp.phot.multi_aperture(radii, cube, centroid)
+
+
+# plot flux time series
+
+outpath = os.path.join(plot_dir, '{}_phot.png'.format(aor))
+sxp.vis.multi_ts(time, fluxes_r, outpath)
+
+
+# convert uncertainties to percent and normalize fluxes
+# uncertainties are in units of MJy/sr/pix and come from the sky background scatter
+
+fluxes_r, unc_r = sxp.phot.get_unc(unc, radii, fluxes_r)
+
+
+# reject outliers
+
+time, cube, centroid, fluxes_r, unc_r = sxp.phot.flux_sigmaclip(time, cube,
+    centroid, radii, fluxes_r, unc_r)
+
+
+# plot cleaned flux time series
+
+outpath = os.path.join(plot_dir, '{}_phot_clean+normalized.png'.format(aor))
+sxp.vis.multi_ts2(time, fluxes_r, outpath)
+
+
+# plot mean to sigma ratio
+
+pl.plot(radii, [i.mean()/i.std() for i in fluxes_r])
+pl.xlabel('aperture radius')
+pl.ylabel('SNR')
+outpath = os.path.join(plot_dir, '{}_snr.png'.format(aor))
+pl.savefig(outpath)
+pl.close()
+
+
+# plot sigma as a function of radius
+
+pl.plot(radii, [i.std() for i in fluxes_r])
+pl.xlabel('aperture radius')
+pl.ylabel('$\sigma$')
+outpath = os.path.join(plot_dir, '{}_sigma.png'.format(aor))
+pl.savefig(outpath)
+pl.close()
+
+
+d = dict(cube=cube, time=time, flux=fluxes_r, radii=radii, unc=unc_r, cen=cen)
+outpath = os.path.join(pickle_dir, '{}_phot.pkl'.format(aor))
+pickle.dump(d, open(outpath, 'wb'))
+
+outpath = os.path.join(log_dir, '{}_phot_log.yaml'.format(aor))
+yaml.dump(log, open(outpath, 'w'), default_flow_style=False)
