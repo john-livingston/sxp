@@ -46,7 +46,7 @@ def load_data(data_dir, transit_aor):
     return [d[i] for i in 'cube, time, flux, radii, unc, cen'.split(', ')]
 
 
-def get_pix(cube, cen=None, geom='3x3', normalize=False):
+def get_pix(cube, cen=None, geom='3x3', normalize=True):
 
     """
     assumes the cube has shape (n,k,k), where n is the number of frames and k
@@ -82,3 +82,22 @@ def get_pix(cube, cen=None, geom='3x3', normalize=False):
         for i in pixels: i /= i.sum()
 
     return pixels
+
+
+def df_from_pickle(picklefile, radius, pix=False, geom='3x3', normalize=True):
+    d = pickle.load(open(picklefile, 'rb'))
+    idx = d['radii'].index(radius)
+    t = d['time']
+    f = d['flux'][idx]
+    s = d['unc'][idx]
+    df = pd.DataFrame(dict(t=t,f=f,s=s))
+    df = df[['t', 'f', 's']]
+    if not pix:
+        return df
+    cube = d['cube']
+    cen = d['cen'] if 'cen' in d.keys() else None
+    pix = get_pix(cube, cen=cen, geom=geom, normalize=normalize)
+    for i in range(pix.shape[1]):
+        key = 'p{}'.format(i)
+        df[key] = pix[:,i]
+    return df
