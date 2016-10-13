@@ -3,7 +3,8 @@ import sys
 import shutil
 import pickle
 import numpy as np
-from photutils.morphology import centroid_com
+import pandas as pd
+from photutils.morphology import centroid_2dg
 
 
 def find_files(directory, pattern):
@@ -59,7 +60,7 @@ def get_pix(cube, cen=None, geom='3x3', normalize=True):
     if not cen:
         med_im = np.median(cube, axis=0)
         fix_nan(med_im)
-        cx, cy = centroid_com(med_im)
+        cx, cy = centroid_2dg(med_im)
         cx, cy = map(int, map(round, [cx, cy]))
         print "centroid: {}, {}".format(cx, cy)
     else:
@@ -95,8 +96,9 @@ def df_from_pickle(picklefile, radius, pix=False, geom='3x3', normalize=True):
     if not pix:
         return df
     cube = d['cube']
-    cen = d['cen'] if 'cen' in d.keys() else None
-    pix = get_pix(cube, cen=cen, geom=geom, normalize=normalize)
+    # cen = d['cen'] if 'cen' in d.keys() else None
+    # pix = get_pix(cube, cen=cen, geom=geom, normalize=normalize)
+    pix = get_pix(cube, geom=geom, normalize=normalize)
     for i in range(pix.shape[1]):
         key = 'p{}'.format(i)
         df[key] = pix[:,i]
