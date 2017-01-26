@@ -4,7 +4,7 @@ from astropy.io import fits
 # from astropy import units as u
 from astropy.stats import sigma_clip
 from photutils import aperture_photometry, CircularAperture
-from photutils.morphology import centroid_com, centroid_1dg, centroid_2dg
+from photutils.centroids import centroid_com, centroid_1dg, centroid_2dg
 from tqdm import tqdm
 from util import find_files
 

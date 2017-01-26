@@ -3,9 +3,9 @@ import matplotlib.pyplot as pl
 from matplotlib import animation as ani
 from matplotlib.colors import LogNorm
 
-from photutils.morphology import centroid_com
-from photutils.morphology import centroid_1dg
-from photutils.morphology import centroid_2dg
+from photutils.centroids import centroid_com
+from photutils.centroids import centroid_1dg
+from photutils.centroids import centroid_2dg
 
 from tqdm import tqdm
 

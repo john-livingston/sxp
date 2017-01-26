@@ -4,7 +4,7 @@ import shutil
 import pickle
 import numpy as np
 import pandas as pd
-from photutils.morphology import centroid_2dg
+from photutils.centroids import centroid_2dg
 
 
 def find_files(directory, pattern):
