@@ -9,9 +9,10 @@ import pickle
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as pl
-from photutils.morphology import centroid_com
-# from photutils.morphology import centroid_1dg
-# from photutils.morphology import centroid_2dg
+try:
+    from photutils.centroids import centroid_com
+except:
+    from photutils.morphology import centroid_com
 
 import sxp
 
