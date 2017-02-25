@@ -11,23 +11,15 @@ cwd = os.path.abspath('.')
 parser = argparse.ArgumentParser(description="Extract out-of-transit photometry"
     " from Spitzer data")
 parser.add_argument('input', help='path to pickle file', type=str)
+parser.add_argument('-r', '--radii', help='Aperture/annulus radii specification string',
+    type=str, default='3_3_7')
 
 args = parser.parse_args()
 
 
 cornichon = pickle.load(open(args.input, 'rb'))
-# centroids = cornichon['cen_ts']
+
 cen = cornichon['cen']
 ims = cornichon['cube']
 
-r1, r2, r3 = 3, 3, 7
-conv_fac = 35.174234
-ap_cor = 1.120
-
-flux = np.array([sxp.phot.ap_phot(im, cen, r1, r2, r3) for im in ims])
-flux_cor = flux * ap_cor * conv_fac
-mu, sig = np.median(flux_cor), np.std(flux_cor)
-mag = sxp.util.spz_jy_to_mags(mu*1e-6, 2)
-umag = 1.08 * sig/mu
-
-print("I2 = {0:.4f} +/- {1:.4f}".format(mag, umag))
+mag, umag = sxp.phot.spz_phot(ims, cen, args.radii, verbose=True)

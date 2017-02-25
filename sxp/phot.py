@@ -325,21 +325,45 @@ def ap_phot(im, cen, r1, r2, r3):
     return float(final_sum)
 
 
-def oot_phot(pickle_fp, t1, t4, verbose=True):
+def spz_phot(ims, cen, r, verbose=True):
 
-    cornichon = pickle.load(open(pickle_fp, 'rb'))
+    if r == '2_2_6':
+        r1, r2, r3 = 2, 2, 6
+        ap_cor = 1.233
+    elif r == '2_12_20':
+        r1, r2, r3 = 2, 12, 20
+        ap_cor = 1.220
+    elif r == '3_3_7':
+        r1, r2, r3 = 3, 3, 7
+        ap_cor = 1.120
+    elif r == '3_12_20':
+        r1, r2, r3 = 3, 12, 20
+        ap_cor = 1.112
+    elif r == '4_12_20':
+        r1, r2, r3 = 4, 12, 20
+        ap_cor = 1.080
+    elif r == '5_5_10':
+        r1, r2, r3 = 5, 5, 10
+        ap_cor = 1.063
+    elif r == '5_12_20':
+        r1, r2, r3 = 5, 12, 20
+        ap_cor = 1.048
+    elif r == '6_12_20':
+        r1, r2, r3 = 6, 12, 20
+        ap_cor = 1.036
+    elif r == '8_12_20':
+        r1, r2, r3 = 8, 12, 20
+        ap_cor = 1.013
+    elif r == '10_12_20':
+        r1, r2, r3 = 10, 12, 20
+        ap_cor = 1.000
+    else:
+        raise ValueError("""Mal-formed aperture/annulus radii string. Must be one of:
+    2_2_6, 2_12_20, 3_3_7, 3_12_20, 4_12_20, 5_5_10, 5_12_20, 6_12_20, 8_12_20, 10_12_20""")
 
-    time = cornichon['time']
-    cen = cornichon['cen']
-    ims = cornichon['cube']
-
-    idx = (time < t1) | (time > t4)
-
-    r1, r2, r3 = 3, 3, 7
     conv_fac = 35.174234
-    ap_cor = 1.120
 
-    flux = np.array([ap_phot(im, cen, r1, r2, r3) for im in ims[idx]])
+    flux = np.array([ap_phot(im, cen, r1, r2, r3) for im in ims])
     flux_cor = flux * ap_cor * conv_fac
     mu, sig = np.median(flux_cor), np.std(flux_cor)
     mag = util.spz_jy_to_mags(mu*1e-6, 2)
@@ -347,5 +371,18 @@ def oot_phot(pickle_fp, t1, t4, verbose=True):
 
     if verbose:
         print("I2 = {0:.4f} +/- {1:.4f}".format(mag, umag))
+
+    return mag, umag
+
+
+def oot_phot(cornichon, t1, t4, r, verbose=True):
+
+    time = cornichon['time']
+    cen = cornichon['cen']
+    ims = cornichon['cube']
+
+    idx = (time < t1) | (time > t4)
+
+    mag, umag = spz_phot(ims[idx], cen, r, verbose=verbose)
 
     return mag, umag

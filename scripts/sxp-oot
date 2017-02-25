@@ -13,8 +13,12 @@ parser = argparse.ArgumentParser(description="Extract out-of-transit photometry"
 parser.add_argument('input', help='path to pickle file', type=str)
 parser.add_argument('-t', '--times', help='times of 1st and 4th contact (comma-separated)',
     type=str, default=None)
+parser.add_argument('-r', '--radii', help='Aperture/annulus radii specification string',
+    type=str, default='3_3_7')
 
 args = parser.parse_args()
 
+cornichon = pickle.load(open(args.input, 'rb'))
+
 t1, t4 = [float(i) for i in args.times.split(',')]
-mag, umag = sxp.phot.oot_phot(args.input, t1, t4)
+mag, umag = sxp.phot.oot_phot(cornichon, t1, t4, args.radii)
