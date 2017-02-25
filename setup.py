@@ -29,10 +29,10 @@ else:
         f.close()
         return r
 
-setup(    
-    name='sxp', 
+setup(
+    name='sxp',
     packages =['sxp'],
-    version="0.1.1", 
+    version="0.1.1",
     author='John Livingston',
     author_email = 'jliv84@gmail.com',
     url = 'https://github.com/john-livingston/sxp',
@@ -42,7 +42,7 @@ setup(
                     + "---------\n\n",
     package_dir={"sxp": "sxp"},
     package_data={"sxp": []},
-    scripts=['scripts/sxphot'],
+    scripts=['scripts/sxp-phot', 'scripts/sxp-sap', 'scripts/sxp-oot'],
     include_package_data=True,
     keywords=['spitzer', 'exoplanet', 'photometry'],
     classifiers = [

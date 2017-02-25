@@ -1,20 +1,21 @@
+import pickle
 import numpy as np
 from scipy import stats
 from astropy.io import fits
 from astropy.stats import sigma_clip
-from photutils import aperture_photometry, CircularAperture
+from photutils import aperture_photometry, CircularAperture, CircularAnnulus
 try:
     from photutils.centroids import centroid_com, centroid_1dg, centroid_2dg
 except:
     from photutils.morphology import centroid_com, centroid_1dg, centroid_2dg
 from tqdm import tqdm
-from util import find_files
+from . import util
 
 
 def read_data(data_dir):
 
 	search_str = "*I2*_bcd.fits"
-	files = list(find_files(data_dir, search_str))
+	files = list(util.find_files(data_dir, search_str))
 
 	hdr = fits.getheader(files[0]).copy()
 	subarray = True
@@ -236,7 +237,7 @@ def flux_sigmaclip(time, cube, centroid, radii, fluxes_r, unc_r,
 			msg = "{} flux outliers for radius {}"
 			print msg.format(flux_masks[i].sum(), radii[i])
 
-	# TODO: currently throwing out a time step if *ANY* of the
+	# FIXME: currently throwing out a time step if *ANY* of the
 	# apertures produced an outlying flux measurement
 	flagged = np.array(flux_masks).any(axis=0)
 	cube = cube[~flagged]
@@ -306,3 +307,45 @@ def get_unc(unc, radii, fluxes_r):
 		fluxes_r[i] /= np.median(fluxes_r[i])
 
 	return fluxes_r, unc_r
+
+
+def ap_phot(im, cen, r1, r2, r3):
+
+    """
+    Simple aperture photometry, using a circular source aperture and sky annulus.
+    """
+
+    apertures = CircularAperture(cen, r1)
+    annulus_apertures = CircularAnnulus(cen, r2, r3)
+    apers = [apertures, annulus_apertures]
+    phot_table = aperture_photometry(im, apers)
+    bkg_mean = phot_table['aperture_sum_1'] / annulus_apertures.area()
+    bkg_sum = bkg_mean * apertures.area()
+    final_sum = phot_table['aperture_sum_0'] - bkg_sum
+    return float(final_sum)
+
+
+def oot_phot(pickle_fp, t1, t4, verbose=True):
+
+    cornichon = pickle.load(open(pickle_fp, 'rb'))
+
+    time = cornichon['time']
+    cen = cornichon['cen']
+    ims = cornichon['cube']
+
+    idx = (time < t1) | (time > t4)
+
+    r1, r2, r3 = 3, 3, 7
+    conv_fac = 35.174234
+    ap_cor = 1.120
+
+    flux = np.array([ap_phot(im, cen, r1, r2, r3) for im in ims[idx]])
+    flux_cor = flux * ap_cor * conv_fac
+    mu, sig = np.median(flux_cor), np.std(flux_cor)
+    mag = util.spz_jy_to_mags(mu*1e-6, 2)
+    umag = 1.08 * sig/mu
+
+    if verbose:
+        print("I2 = {0:.4f} +/- {1:.4f}".format(mag, umag))
+
+    return mag, umag

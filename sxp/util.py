@@ -86,6 +86,7 @@ def get_pix(cube, cen=None, geom='3x3', normalize=True):
 
 
 def df_from_pickle(picklefile, radius, pix=False, geom='3x3', normalize=True):
+
     d = pickle.load(open(picklefile, 'rb'))
     idx = d['radii'].index(radius)
     t = d['time']
@@ -96,10 +97,33 @@ def df_from_pickle(picklefile, radius, pix=False, geom='3x3', normalize=True):
     if not pix:
         return df
     cube = d['cube']
-    # cen = d['cen'] if 'cen' in d.keys() else None
-    # pix = get_pix(cube, cen=cen, geom=geom, normalize=normalize)
     pix = get_pix(cube, geom=geom, normalize=normalize)
     for i in range(pix.shape[1]):
         key = 'p{}'.format(i)
         df[key] = pix[:,i]
     return df
+
+
+def to_mags(flux, zp):
+
+	"""
+	Converts flux to magnitudes using the input zero point,
+	which must be in the same units as flux (i.e. Janskies)
+	"""
+
+	return -2.5 * np.log10(flux/zp)
+
+
+def spz_jy_to_mags(jy, ch):
+
+	"""
+	Converts IRAC ch1 and ch2 flux in Janskies to magnitudes.
+	"""
+
+	if ch==1:
+		zp = 280.9
+	elif ch==2:
+		zp = 179.7
+	else:
+		raise ValueError('ch must be either 1 or 2')
+	return to_mags(jy,zp)

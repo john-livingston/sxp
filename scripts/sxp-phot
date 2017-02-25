@@ -154,7 +154,7 @@ pl.savefig(outpath)
 pl.close()
 
 
-d = dict(cube=cube, time=time, flux=fluxes_r, radii=radii, unc=unc_r, cen=cen)
+d = dict(cube=cube, time=time, flux=fluxes_r, radii=radii, unc=unc_r, cen=cen, cen_ts=centroid)
 outpath = os.path.join(pickle_dir, '{}_phot.pkl'.format(aor))
 pickle.dump(d, open(outpath, 'wb'))
 
