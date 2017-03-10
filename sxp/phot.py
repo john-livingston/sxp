@@ -110,6 +110,7 @@ def get_centroids(cube, centroid=centroid_com):
 	mask[x0:x1,y0:y1] = False
 
 	centroids = []
+    print "computing centroids"
 	for im in tqdm(cube):
 		ma = np.ma.masked_array(im, mask)
 		masked = ma.filled(0)
