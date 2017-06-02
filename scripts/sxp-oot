@@ -15,10 +15,11 @@ parser.add_argument('-t', '--times', help='times of 1st and 4th contact (comma-s
     type=str, default=None)
 parser.add_argument('-r', '--radii', help='Aperture/annulus radii specification string',
     type=str, default='3_3_7')
+parser.add_argument('-c', '--channel', help='IRAC channel', type=int, default=2)
 
 args = parser.parse_args()
 
 cornichon = pickle.load(open(args.input, 'rb'))
 
 t1, t4 = [float(i) for i in args.times.split(',')]
-mag, umag = sxp.phot.oot_phot(cornichon, t1, t4, args.radii)
+mag, umag = sxp.phot.oot_phot(cornichon, t1, t4, args.radii, args.channel)

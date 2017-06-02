@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser(description="Extract out-of-transit photometry"
 parser.add_argument('input', help='path to pickle file', type=str)
 parser.add_argument('-r', '--radii', help='Aperture/annulus radii specification string',
     type=str, default='3_3_7')
+parser.add_argument('-c', '--channel', help='IRAC channel', type=int, default=2)
 
 args = parser.parse_args()
 
@@ -22,4 +23,4 @@ cornichon = pickle.load(open(args.input, 'rb'))
 cen = cornichon['cen']
 ims = cornichon['cube']
 
-mag, umag = sxp.phot.spz_phot(ims, cen, args.radii, verbose=True)
+mag, umag = sxp.phot.spz_phot(ims, cen, args.radii, args.channel, verbose=True)

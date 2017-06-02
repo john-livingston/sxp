@@ -26,6 +26,7 @@ parser.add_argument('-o', '--output', help='output dir',
 parser.add_argument('-m', '--movie', help='make movie of extracted images',
     dest='movie', action='store_true')
 parser.add_argument('-a', '--aor', help='aor name', type=str, default=None)
+parser.add_argument('-c', '--channel', help='IRAC channel', type=int, default=2)
 parser.set_defaults(movie=False)
 
 
@@ -46,7 +47,7 @@ log = {}
 
 # read data
 
-time, cube = sxp.phot.read_data(data_dir)
+time, cube = sxp.phot.read_data(data_dir, args.channel)
 # pix_outliers(cube)
 
 

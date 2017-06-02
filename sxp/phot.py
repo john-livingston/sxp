@@ -12,9 +12,13 @@ from tqdm import tqdm
 from . import util
 
 
-def read_data(data_dir):
+def read_data(data_dir, channel):
 
-    search_str = "*I2*_bcd.fits"
+    if channel == 1:
+        search_str = "*I1*_bcd.fits"
+    elif channel == 2:
+        search_str = "*I2*_bcd.fits"
+
     files = list(util.find_files(data_dir, search_str))
 
     hdr = fits.getheader(files[0]).copy()
@@ -326,38 +330,51 @@ def ap_phot(im, cen, r1, r2, r3):
     return float(final_sum)
 
 
-def spz_phot(ims, cen, r, verbose=True):
+def spz_phot(ims, cen, r, channel=2, verbose=True):
+
+    assert channel == 1 or channel == 2
+
+    cors = [[1.215, 1.233],
+        [1.208, 1.220],
+        [1.125, 1.120],
+        [1.112, 1.112],
+        [1.070, 1.080],
+        [1.060, 1.063],
+        [1.047, 1.048],
+        [1.032, 1.036],
+        [1.011, 1.013],
+        [1.000, 1.000]]
 
     if r == '2_2_6':
         r1, r2, r3 = 2, 2, 6
-        ap_cor = 1.233
+        ap_cor = cors[0][channel-1]
     elif r == '2_12_20':
         r1, r2, r3 = 2, 12, 20
-        ap_cor = 1.220
+        ap_cor = cors[1][channel-1]
     elif r == '3_3_7':
         r1, r2, r3 = 3, 3, 7
-        ap_cor = 1.120
+        ap_cor = cors[2][channel-1]
     elif r == '3_12_20':
         r1, r2, r3 = 3, 12, 20
-        ap_cor = 1.112
+        ap_cor = cors[3][channel-1]
     elif r == '4_12_20':
         r1, r2, r3 = 4, 12, 20
-        ap_cor = 1.080
+        ap_cor = cors[4][channel-1]
     elif r == '5_5_10':
         r1, r2, r3 = 5, 5, 10
-        ap_cor = 1.063
+        ap_cor = cors[5][channel-1]
     elif r == '5_12_20':
         r1, r2, r3 = 5, 12, 20
-        ap_cor = 1.048
+        ap_cor = cors[6][channel-1]
     elif r == '6_12_20':
         r1, r2, r3 = 6, 12, 20
-        ap_cor = 1.036
+        ap_cor = cors[7][channel-1]
     elif r == '8_12_20':
         r1, r2, r3 = 8, 12, 20
-        ap_cor = 1.013
+        ap_cor = cors[8][channel-1]
     elif r == '10_12_20':
         r1, r2, r3 = 10, 12, 20
-        ap_cor = 1.000
+        ap_cor = cors[9][channel-1]
     else:
         raise ValueError("""Mal-formed aperture/annulus radii string. Must be one of:
     2_2_6, 2_12_20, 3_3_7, 3_12_20, 4_12_20, 5_5_10, 5_12_20, 6_12_20, 8_12_20, 10_12_20""")
@@ -371,12 +388,13 @@ def spz_phot(ims, cen, r, verbose=True):
     umag = 1.08 * sig/mu
 
     if verbose:
-        print("I2 = {0:.4f} +/- {1:.4f}".format(mag, umag))
+        print("I{} aperture {} correction: {}".format(channel, r, ap_cor))
+        print("I{} mag = {0:.4f} +/- {1:.4f}".format(channel, mag, umag))
 
     return mag, umag
 
 
-def oot_phot(cornichon, t1, t4, r, verbose=True):
+def oot_phot(cornichon, t1, t4, r, channel=2, verbose=True):
 
     time = cornichon['time']
     cen = cornichon['cen']
@@ -384,6 +402,6 @@ def oot_phot(cornichon, t1, t4, r, verbose=True):
 
     idx = (time < t1) | (time > t4)
 
-    mag, umag = spz_phot(ims[idx], cen, r, verbose=verbose)
+    mag, umag = spz_phot(ims[idx], cen, r, channel, verbose=verbose)
 
     return mag, umag
