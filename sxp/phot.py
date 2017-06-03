@@ -334,6 +334,7 @@ def spz_phot(ims, cen, r, channel=2, verbose=True):
 
     assert channel == 1 or channel == 2
 
+    apers = "2_2_6 2_12_20 3_3_7 3_12_20 4_12_20 5_5_10 5_12_20 6_12_20 8_12_20 10_12_2".split()
     cors = [[1.215, 1.233],
         [1.208, 1.220],
         [1.125, 1.120],
@@ -344,38 +345,12 @@ def spz_phot(ims, cen, r, channel=2, verbose=True):
         [1.032, 1.036],
         [1.011, 1.013],
         [1.000, 1.000]]
+    ap_cors = dict(zip(apers, cors))
 
-    if r == '2_2_6':
-        r1, r2, r3 = 2, 2, 6
-        ap_cor = cors[0][channel-1]
-    elif r == '2_12_20':
-        r1, r2, r3 = 2, 12, 20
-        ap_cor = cors[1][channel-1]
-    elif r == '3_3_7':
-        r1, r2, r3 = 3, 3, 7
-        ap_cor = cors[2][channel-1]
-    elif r == '3_12_20':
-        r1, r2, r3 = 3, 12, 20
-        ap_cor = cors[3][channel-1]
-    elif r == '4_12_20':
-        r1, r2, r3 = 4, 12, 20
-        ap_cor = cors[4][channel-1]
-    elif r == '5_5_10':
-        r1, r2, r3 = 5, 5, 10
-        ap_cor = cors[5][channel-1]
-    elif r == '5_12_20':
-        r1, r2, r3 = 5, 12, 20
-        ap_cor = cors[6][channel-1]
-    elif r == '6_12_20':
-        r1, r2, r3 = 6, 12, 20
-        ap_cor = cors[7][channel-1]
-    elif r == '8_12_20':
-        r1, r2, r3 = 8, 12, 20
-        ap_cor = cors[8][channel-1]
-    elif r == '10_12_20':
-        r1, r2, r3 = 10, 12, 20
-        ap_cor = cors[9][channel-1]
-    else:
+    try:
+        ap_cor = ap_cors[r][channel-1]
+        r1, r2, r3 = map(int, r.split('_'))
+    except:
         raise ValueError("""Mal-formed aperture/annulus radii string. Must be one of:
     2_2_6, 2_12_20, 3_3_7, 3_12_20, 4_12_20, 5_5_10, 5_12_20, 6_12_20, 8_12_20, 10_12_20""")
 
