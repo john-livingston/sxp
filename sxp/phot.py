@@ -384,7 +384,7 @@ def spz_phot(ims, cen, r, channel=2, verbose=True):
     flux = np.array([ap_phot(im, cen, r1, r2, r3) for im in ims])
     flux_cor = flux * ap_cor * conv_fac
     mu, sig = np.median(flux_cor), np.std(flux_cor)
-    mag = util.spz_jy_to_mags(mu*1e-6, 2)
+    mag = util.spz_jy_to_mags(mu*1e-6, channel)
     umag = 1.08 * sig/mu
 
     if verbose:
