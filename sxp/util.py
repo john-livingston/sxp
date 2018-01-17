@@ -158,7 +158,7 @@ def beta(flux, timestep, start_min=5, stop_min=20):
     betas = []
     for bs in range(min_bs, max_bs + 1):
         nbins = int(round(ndata / bs))
-        if nbins == 0:
+        if nbins < 2:
             continue
         sigmaN_theory = sigma1 / np.sqrt(bs) * np.sqrt( nbins / (nbins - 1) )
         sigmaN_actual = np.std(binned(flux, bs))
