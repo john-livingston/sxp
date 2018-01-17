@@ -1,0 +1,23 @@
+#!/usr/bin/env python
+
+import os
+import pickle
+import argparse
+import numpy as np
+
+import sxp
+
+cwd = os.path.abspath('.')
+parser = argparse.ArgumentParser(description="Determine optimal aperture radius")
+parser.add_argument('input', help='path to pickle file', type=str)
+parser.add_argument('-o', '--outdir', help='output directory for diagnostic plot',
+    type=str, default='.')
+parser.add_argument('-n', '--nseg', help='number of segments to use',
+    type=int, default=10)
+
+args = parser.parse_args()
+
+cornichon = pickle.load(open(args.input, 'rb'))
+aor = os.path.basename(args.input).split('.')[0]
+fp = os.path.join(args.outdir, '{}_opt_radius.png'.format(aor))
+t, f = sxp.util.compute_best_radius(cornichon, n_seg=args.nseg, fp=fp)

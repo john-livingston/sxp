@@ -42,7 +42,7 @@ setup(
                     + "---------\n\n",
     package_dir={"sxp": "sxp"},
     package_data={"sxp": []},
-    scripts=['scripts/sxp-phot', 'scripts/sxp-sap', 'scripts/sxp-oot'],
+    scripts=['scripts/sxp-phot', 'scripts/sxp-sap', 'scripts/sxp-oot', 'scripts/sxp-apr'],
     include_package_data=True,
     keywords=['spitzer', 'exoplanet', 'photometry'],
     classifiers = [

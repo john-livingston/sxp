@@ -1,3 +1,5 @@
+from __future__ import division
+
 import os
 import sys
 import shutil
@@ -5,6 +7,10 @@ import pickle
 import numpy as np
 import pandas as pd
 from photutils.centroids import centroid_2dg
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as pl
+
 
 
 def find_files(directory, pattern):
@@ -127,3 +133,93 @@ def spz_jy_to_mags(jy, ch):
     else:
         raise ValueError('ch must be either 1 or 2')
     return to_mags(jy,zp)
+
+
+def binned(a, binsize, fun=np.mean):
+    return np.array([fun(a[i:i+binsize], axis=0) \
+        for i in range(0, a.shape[0], binsize)])
+
+
+def beta(flux, timestep, start_min=5, stop_min=20):
+
+    """
+    flux : measured flux (presumably normalized)
+    timestep : time interval between datapoints in seconds
+    """
+
+    assert timestep < start_min * 60
+    ndata = len(flux)
+
+    sigma1 = np.std(flux)
+
+    min_bs = int(start_min * 60 / timestep)
+    max_bs = int(stop_min * 60 / timestep)
+
+    betas = []
+    for bs in range(min_bs, max_bs + 1):
+        nbins = int(round(ndata / bs))
+        sigmaN_theory = sigma1 / np.sqrt(bs) * np.sqrt( nbins / (nbins - 1) )
+        sigmaN_actual = np.std(binned(flux, bs))
+        beta = sigmaN_actual / sigmaN_theory
+        betas.append(beta)
+
+    return np.median(betas)
+
+
+def compute_best_radius(pkl, n_seg=10, fp=None):
+
+    if fp is not None: fig, axs = pl.subplots(1, 2, figsize=(10,3))
+
+    t = pkl[b'time']
+    flux = pkl[b'flux']
+    rad = pkl[b'radii']
+    timestep = np.diff(t).mean() * 86400
+
+    r_std, r_beta =[], []
+
+    for i in range(n_seg):
+        f_std = []
+        f_beta = []
+
+        n = int(len(t)/n_seg)
+        for r in rad:
+            idx = rad.index(r)
+            f_std.append(flux[idx][i*n:(i+1)*n].std())
+            f_beta.append(beta(flux[idx][i*n:(i+1)*n], timestep))
+
+        r_std_opt = rad[f_std.index(min(f_std))]
+        f_std_opt = f_std[f_std.index(min(f_std))]
+        if fp is not None:
+            axs[0].plot(rad, f_std)
+            axs[0].plot(r_std_opt, f_std_opt, 'ko')
+            axs[0].set_title(r'$\sigma$')
+
+        r_beta_opt = rad[f_beta.index(min(f_beta))]
+        f_beta_opt = f_beta[f_beta.index(min(f_beta))]
+        if fp is not None:
+            axs[1].plot(rad, f_beta)
+            axs[1].plot(r_beta_opt, f_beta_opt, 'ko')
+            axs[1].set_title(r'$\beta$')
+
+        r_std.append(r_std_opt)
+        r_beta.append(r_beta_opt)
+
+    if fp is not None:
+        axs[0].vlines(np.median(r_std), *axs[0].get_ylim(), linestyle='--', color='gray')
+        axs[1].vlines(np.median(r_beta), *axs[1].get_ylim(), linestyle='--', color='gray')
+
+    if fp is not None:
+        pl.savefig(fp)
+        pl.close()
+
+    r_opt_std = round(np.median(r_std),1)
+    r_opt_beta = round(np.median(r_beta),1)
+
+    print("optimal for white noise: {}".format(r_opt_std))
+    print("optimal for red noise: {}".format(r_opt_beta))
+
+    idx = rad.index(round(np.mean([r_opt_std,r_opt_beta]),1))
+    print("using radius: {}".format(rad[idx]))
+    f = flux[idx]
+
+    return t, f

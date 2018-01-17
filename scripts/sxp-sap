@@ -8,7 +8,7 @@ import numpy as np
 import sxp
 
 cwd = os.path.abspath('.')
-parser = argparse.ArgumentParser(description="Extract out-of-transit photometry"
+parser = argparse.ArgumentParser(description="Extract photometry"
     " from Spitzer data")
 parser.add_argument('input', help='path to pickle file', type=str)
 parser.add_argument('-r', '--radii', help='Aperture/annulus radii specification string',
