@@ -27,7 +27,7 @@ def read_data(data_dir, channel):
         subarray = False
 
     # read data and header keyword values
-    print "reading data"
+    print("reading data")
     data, time_bmjd, obs_length_s = [], [], []
     for fp in tqdm(files):
         hdr = fits.getheader(fp).copy()
@@ -37,7 +37,7 @@ def read_data(data_dir, channel):
         obs_length_s.append(hdr['ATIMEEND'] - hdr['AINTBEG'])
 
     # make into arrays and sort by start time
-    data, time_bmjd, obs_length_s = map(np.array, [data, time_bmjd, obs_length_s])
+    data, time_bmjd, obs_length_s = list(map(np.array, [data, time_bmjd, obs_length_s]))
     time_bjd = time_bmjd + 2400000.5
     idx = np.argsort(time_bmjd)
     time_bmjd = time_bmjd[idx]
@@ -74,18 +74,18 @@ def pix_outliers(cube, step=64, sigma_level=3, final_iter=True, verbose=False):
 
     nframes = cube.shape[0]
     if verbose:
-        print "num frames: {}".format(nframes)
+        print("num frames: {}".format(nframes))
 
-    for i in tqdm(range(nframes/step)):
+    for i in tqdm(list(range(nframes/step))):
 
         if (i+1)*step <= nframes:
             chunk = cube[i*step:(i+1)*step]
             if verbose:
-                print "processing frames {} - {}".format(i*step, (i+1)*step-1)
+                print("processing frames {} - {}".format(i*step, (i+1)*step-1))
         else:
             chunk = cube[i*step:]
             if verbose:
-                print "processing frames {} - {}".format(i*step, nframes-1)
+                print("processing frames {} - {}".format(i*step, nframes-1))
 
         sd = np.std(chunk, axis=0)
         md = np.median(chunk, axis=0)
@@ -114,7 +114,7 @@ def get_centroids(cube, centroid=centroid_com):
     mask[x0:x1,y0:y1] = False
 
     centroids = []
-    print "computing centroids"
+    print("computing centroids")
     for im in tqdm(cube):
         ma = np.ma.masked_array(im, mask)
         masked = ma.filled(0)
@@ -144,9 +144,9 @@ def centroid_sigclip(time, cube, centroid, final_iter=True, verbose=True):
     assert time.size == centroid.shape[0]
     flagged = np.zeros_like(time).astype(bool)
 
-    x, y = zip(*centroid)
-    print "removing centroid outliers"
-    for i in tqdm(range(nsteps)):
+    x, y = list(zip(*centroid))
+    print("removing centroid outliers")
+    for i in tqdm(list(range(nsteps))):
         if (i+1) * ws <= nframes:
             x_chunk = x[i*ws:(i+1)*ws]
             y_chunk = x[i*ws:(i+1)*ws]
@@ -165,14 +165,14 @@ def centroid_sigclip(time, cube, centroid, final_iter=True, verbose=True):
         flag_chunk[idx] = True
 
     if verbose:
-        print "{} centroid outliers removed".format(flagged.sum())
+        print("{} centroid outliers removed".format(flagged.sum()))
 
     time = time[~flagged]
     cube = cube[~flagged]
     centroid = centroid[~flagged]
 
     if final_iter:
-        x, y = zip(*centroid)
+        x, y = list(zip(*centroid))
         xc = sigma_clip(x, sigma=5)
         yc = sigma_clip(y, sigma=5)
         mask = xc.mask | yc.mask
@@ -180,7 +180,7 @@ def centroid_sigclip(time, cube, centroid, final_iter=True, verbose=True):
         cube = cube[~mask]
         centroid = centroid[~mask]
         if verbose:
-            print "{} centroid outliers removed".format(mask.sum())
+            print("{} centroid outliers removed".format(mask.sum()))
 
     return time, cube, centroid
 
@@ -189,7 +189,7 @@ def multi_aperture(radii, cube, centroids):
 
     fluxes_r = []
 
-    print "computing photometry"
+    print("computing photometry")
     for r in tqdm(radii):
 
         flux = []
@@ -240,7 +240,7 @@ def flux_sigmaclip(time, cube, centroid, radii, fluxes_r, unc_r,
     if verbose:
         for i in range(len(fluxes_r)):
             msg = "{} flux outliers for radius {}"
-            print msg.format(flux_masks[i].sum(), radii[i])
+            print(msg.format(flux_masks[i].sum(), radii[i]))
 
     # FIXME: currently throwing out a time step if *ANY* of the
     # apertures produced an outlying flux measurement
@@ -267,7 +267,7 @@ def flux_sigmaclip(time, cube, centroid, radii, fluxes_r, unc_r,
         if verbose:
             for i in range(len(fluxes_r)):
                 msg = "{} flux outliers for radius {}"
-                print msg.format(masks[i].sum(), radii[i])
+                print(msg.format(masks[i].sum(), radii[i]))
 
     return time, cube, centroid, fluxes_r, unc_r
 
@@ -280,7 +280,7 @@ def subtract_bg(cube):
     mask[:,13:15] = True
     mask[:,31] = True
     unc = []
-    print "subtracting background, computing uncertainties, normalizing flux"
+    print("subtracting background, computing uncertainties, normalizing flux")
     for im in tqdm(cube):
         good = ~np.isnan(im) & ~mask
         # knutson: iterative clipping of 3-sigma outliers prior to gaussian fit
@@ -345,11 +345,11 @@ def spz_phot(ims, cen, r, channel=2, verbose=True):
         [1.032, 1.036],
         [1.011, 1.013],
         [1.000, 1.000]]
-    ap_cors = dict(zip(apers, cors))
+    ap_cors = dict(list(zip(apers, cors)))
 
     try:
         ap_cor = ap_cors[r][channel-1]
-        r1, r2, r3 = map(int, r.split('_'))
+        r1, r2, r3 = list(map(int, r.split('_')))
     except:
         raise ValueError("""Mal-formed aperture/annulus radii string. Must be one of:
     2_2_6, 2_12_20, 3_3_7, 3_12_20, 4_12_20, 5_5_10, 5_12_20, 6_12_20, 8_12_20, 10_12_20""")
@@ -363,8 +363,8 @@ def spz_phot(ims, cen, r, channel=2, verbose=True):
     umag = 1.08 * sig/mu
 
     if verbose:
-        print("I{} aperture {} correction: {}".format(channel, r, ap_cor))
-        print("I{} mag = {0:.4f} +/- {1:.4f}".format(channel, mag, umag))
+        print(("I{} aperture {} correction: {}".format(channel, r, ap_cor)))
+        print(("I{} mag = {0:.4f} +/- {1:.4f}".format(channel, mag, umag)))
 
     return mag, umag
 

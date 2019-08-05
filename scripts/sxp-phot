@@ -64,11 +64,11 @@ if args.movie:
 
 outpath = os.path.join(plot_dir, '{}_cube_stacked.png'.format(aor))
 cen = sxp.vis.plot_stacked(cube, outpath)
-print "median centroid: {},{}".format(*cen)
+print("median centroid: {},{}".format(*cen))
 dist = np.sqrt((15-cen[0])**2 + (15-cen[1])**2)
 log['median_centroid'] = cen
 if dist > 0.5:
-    print "WARNING: target may not be on sweet spot"
+    print("WARNING: target may not be on sweet spot")
     log['target_maybe_not_on_sweet_spot'] = True
 
 
@@ -80,7 +80,7 @@ centroid = sxp.phot.get_centroids(cube, centroid=centroid_com)
 # plot centroids
 
 outpath = os.path.join(plot_dir, '{}_centroid.png'.format(aor))
-x, y = zip(*centroid)
+x, y = list(zip(*centroid))
 sxp.vis.centroids(time, x, y, outpath)
 
 
@@ -93,7 +93,7 @@ time, cube, centroid = sxp.phot.centroid_sigclip(time, cube, centroid)
 # plot cleaned centroids
 
 outpath = os.path.join(plot_dir, '{}_centroid_clean.png'.format(aor))
-x, y = zip(*centroid)
+x, y = list(zip(*centroid))
 sxp.vis.centroids(time, x, y, outpath)
 
 

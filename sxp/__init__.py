@@ -1,6 +1,6 @@
-import phot
-import util
-import vis
+from . import phot
+from . import util
+from . import vis
 
 
 class SxpDataset(dict):
@@ -35,7 +35,7 @@ class SxpDataset(dict):
             i = r.index(self._config['radius'])
         except:
             sys.exit('invalid radius selection')
-        print("using radius: {}".format(r[i]))
+        print(("using radius: {}".format(r[i])))
 
         self['radius'] = r[i]
         self['f'] = f[i]

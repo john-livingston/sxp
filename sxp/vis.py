@@ -55,7 +55,7 @@ def plot_stacked(cube, outpath=None, dpi=240):
         cen = centroid(masked)
         cens.append(cen)
         x, y = cen
-        print x, y
+        print(x, y)
         pl.plot(x, y, 'o', ms=s, fillstyle='none',
             markeredgewidth=3, label=str(centroid).split()[1])
         s -= 5
@@ -115,7 +115,7 @@ def multi_ts2(time, fluxes_r, outpath=None):
     colors = [pl.cm.RdBu_r(i) for i in np.linspace(0, 1, nr)]
     alphas = np.linspace(0.25, 0.75, nr)
 
-    sizes = range(2, nr+2)
+    sizes = list(range(2, nr+2))
     sizes.reverse()
 
     pl.figure(figsize=(15,10))

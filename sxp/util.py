@@ -1,4 +1,4 @@
-from __future__ import division
+
 
 import os
 import sys
@@ -67,10 +67,10 @@ def get_pix(cube, cen=None, geom='3x3', normalize=True):
         med_im = np.median(cube, axis=0)
         fix_nan(med_im)
         cx, cy = centroid_2dg(med_im)
-        cx, cy = map(int, map(round, [cx, cy]))
-        print "centroid: {}, {}".format(cx, cy)
+        cx, cy = list(map(int, list(map(round, [cx, cy]))))
+        print("centroid: {}, {}".format(cx, cy))
     else:
-        cx, cy = map(int, cen)
+        cx, cy = list(map(int, cen))
     if geom == '3x3':
         i = 1
     elif geom == '5x5':
@@ -217,11 +217,11 @@ def compute_best_radius(pkl, n_seg=10, fp=None):
     r_opt_std = round(np.median(r_std),1)
     r_opt_beta = round(np.median(r_beta),1)
 
-    print("optimal for white noise: {}".format(r_opt_std))
-    print("optimal for red noise: {}".format(r_opt_beta))
+    print(("optimal for white noise: {}".format(r_opt_std)))
+    print(("optimal for red noise: {}".format(r_opt_beta)))
 
     idx = rad.index(round(np.mean([r_opt_std,r_opt_beta]),1))
-    print("using radius: {}".format(rad[idx]))
+    print(("using radius: {}".format(rad[idx])))
     f = flux[idx]
 
     return t, f
