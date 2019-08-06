@@ -76,7 +76,7 @@ def pix_outliers(cube, step=64, sigma_level=3, final_iter=True, verbose=False):
     if verbose:
         print("num frames: {}".format(nframes))
 
-    for i in tqdm(list(range(nframes/step))):
+    for i in tqdm(list(range(int(round(nframes/step))))):
 
         if (i+1)*step <= nframes:
             chunk = cube[i*step:(i+1)*step]
@@ -139,7 +139,7 @@ def centroid_sigclip(time, cube, centroid, final_iter=True, verbose=True):
     ws = int(40 / time_step_m)
 
     nframes = cube.shape[0]
-    nsteps = cube.shape[0] / ws
+    nsteps = int(round(cube.shape[0] / ws))
 
     assert time.size == centroid.shape[0]
     flagged = np.zeros_like(time).astype(bool)
