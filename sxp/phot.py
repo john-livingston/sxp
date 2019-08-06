@@ -213,7 +213,7 @@ def flux_sigmaclip(time, cube, centroid, radii, fluxes_r, unc_r,
     time_step_m = np.diff(time).mean() * 24 * 60
     ws = int(40 / time_step_m)
     nframes = cube.shape[0]
-    nsteps = cube.shape[0] / ws
+    nsteps = int(round(cube.shape[0] / ws))
 
     flux_masks = []
     for i in range(len(fluxes_r)):
